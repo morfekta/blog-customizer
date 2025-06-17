@@ -4,6 +4,7 @@ import { Button } from 'src/ui/button';
 import styles from './ArticleParamsForm.module.scss';
 import { useEffect, useRef, useState } from 'react';
 import {
+	ArticleStateType,
 	backgroundColors,
 	contentWidthArr,
 	defaultArticleState,
@@ -17,59 +18,69 @@ import { Separator } from 'src/ui/separator';
 import { Text } from 'src/ui/text';
 import clsx from 'clsx';
 
-type Props = {
-	isOpen: boolean;
-	onToggle: () => void;
-	initialValues: typeof defaultArticleState;
-	onApply: (newStyles: typeof defaultArticleState) => void;
-	onReset: () => void;
-};
+export const ArticleParamsForm = () => {
+	// Состояние для управления открытием/закрытием боковой панели
+	const [isOpen, setOpen] = useState(false);
 
-export const ArticleParamsForm = ({
-	isOpen,
-	onToggle,
-	initialValues,
-	onApply,
-	onReset,
-}: Props) => {
+	// Состояние для хранения параметров статьи
+	const [values, setValues] = useState(defaultArticleState);
+
 	// Ссылка на контейнер формы для отслеживания кликов вне её
 	const ref = useRef<HTMLDivElement>(null);
 
+	// Сброс эффектов вне, только когда форма открыта
 	useEffect(() => {
+		if (!isOpen) return;
 		const handleClickOutside = (e: MouseEvent) => {
-			if (isOpen && ref.current && !ref.current.contains(e.target as Node)) {
-				onToggle();
+			if (ref.current && !ref.current.contains(e.target as Node)) {
+				setOpen(false);
 			}
 		};
 		document.addEventListener('mousedown', handleClickOutside);
 		return () => document.removeEventListener('mousedown', handleClickOutside);
-	}, [isOpen, onToggle]);
+	}, [isOpen]);
 
-	// Состояние для хранения параметров статьи
-	const [values, setValues] = useState(initialValues);
+	// При первом монтировании — сразу применяем дефолтные стили
+	useEffect(() => {
+		applyStyles(defaultArticleState);
+	}, []);
+
+	// Утилита: записываем CSS-переменные на корневой элемент
+	const applyStyles = (s: ArticleStateType) => {
+		const root = document.documentElement.style;
+		root.setProperty('--font-family', s.fontFamilyOption.value);
+		root.setProperty('--font-size', s.fontSizeOption.value);
+		root.setProperty('--font-color', s.fontColor.value);
+		root.setProperty('--container-width', s.contentWidth.value);
+		root.setProperty('--bg-color', s.backgroundColor.value);
+	};
+
+	const handleToggle = () => setOpen((prev) => !prev);
 
 	// Обработчик отправки формы
-	const handleSubmit = (e: React.FormEvent) => {
+	const handleApply = (e: React.FormEvent) => {
 		e.preventDefault();
-		onApply(values);
+		applyStyles(values);
+		setOpen(false);
 	};
 
 	// Обработчик сброса формы
 	const handleReset = (e: React.FormEvent) => {
 		e.preventDefault();
-		setValues(initialValues);
-		onReset();
+		setValues(defaultArticleState);
+		applyStyles(defaultArticleState);
+		setOpen(false);
 	};
 
 	return (
 		<>
-			<ArrowButton isOpen={isOpen} onClick={onToggle} />
+			<ArrowButton isOpen={isOpen} onClick={handleToggle} />
 			<aside
 				ref={ref}
 				className={clsx(styles.container, { [styles.container_open]: isOpen })}>
 				<form
 					className={styles.form}
-					onSubmit={handleSubmit}
+					onSubmit={handleApply}
 					onReset={handleReset}>
 					<Text as='h1' size={31} weight={800} uppercase>
 						Задайте параметры
@@ -114,7 +125,7 @@ export const ArticleParamsForm = ({
 
 					{/* Разделитель */}
 					<div className={styles.field}>
-						<Separator></Separator>
+						<Separator />
 					</div>
 
 					{/* Цвет фона */}

@@ -20,7 +20,7 @@ import clsx from 'clsx';
 
 export const ArticleParamsForm = () => {
 	// Состояние для управления открытием/закрытием боковой панели
-	const [isOpen, setOpen] = useState(false);
+	const [isMenuOpen, setIsMenuOpen] = useState(false);
 
 	// Состояние для хранения параметров статьи
 	const [values, setValues] = useState(defaultArticleState);
@@ -30,15 +30,15 @@ export const ArticleParamsForm = () => {
 
 	// Сброс эффектов вне, только когда форма открыта
 	useEffect(() => {
-		if (!isOpen) return;
+		if (!isMenuOpen) return;
 		const handleClickOutside = (e: MouseEvent) => {
 			if (ref.current && !ref.current.contains(e.target as Node)) {
-				setOpen(false);
+				setIsMenuOpen(false);
 			}
 		};
 		document.addEventListener('mousedown', handleClickOutside);
 		return () => document.removeEventListener('mousedown', handleClickOutside);
-	}, [isOpen]);
+	}, [isMenuOpen]);
 
 	// При первом монтировании — сразу применяем дефолтные стили
 	useEffect(() => {
@@ -55,13 +55,13 @@ export const ArticleParamsForm = () => {
 		root.setProperty('--bg-color', s.backgroundColor.value);
 	};
 
-	const handleToggle = () => setOpen((prev) => !prev);
+	const handleToggle = () => setIsMenuOpen((prev) => !prev);
 
 	// Обработчик отправки формы
 	const handleApply = (e: React.FormEvent) => {
 		e.preventDefault();
 		applyStyles(values);
-		setOpen(false);
+		setIsMenuOpen(false);
 	};
 
 	// Обработчик сброса формы
@@ -69,12 +69,12 @@ export const ArticleParamsForm = () => {
 		e.preventDefault();
 		setValues(defaultArticleState);
 		applyStyles(defaultArticleState);
-		setOpen(false);
+		setIsMenuOpen(false);
 	};
 
 	return (
 		<>
-			<ArrowButton isOpen={isOpen} onClick={handleToggle} />
+			<ArrowButton isOpen={isMenuOpen} onClick={handleToggle} />
 			<aside
 				ref={ref}
 				className={clsx(styles.container, { [styles.container_open]: isOpen })}>

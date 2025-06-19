@@ -77,7 +77,7 @@ export const ArticleParamsForm = () => {
 			<ArrowButton isOpen={isMenuOpen} onClick={handleToggle} />
 			<aside
 				ref={ref}
-				className={clsx(styles.container, { [styles.container_open]: isOpen })}>
+				className={clsx(styles.container, { [styles.container_open]: isMenuOpen })}>
 				<form
 					className={styles.form}
 					onSubmit={handleApply}
